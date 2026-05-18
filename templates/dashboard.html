@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>API Monitoring — Frankfurter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
+        header { background: #111827; color: white; padding: 24px 40px; }
+        main { padding: 24px 40px; max-width: 1100px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 20px 0; }
+        .card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+        .metric { font-size: 28px; font-weight: 700; margin-top: 8px; }
+        .ok { color: #047857; font-weight: 700; }
+        .ko { color: #b91c1c; font-weight: 700; }
+        .btn { display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 10px 14px; border-radius: 10px; margin-right: 8px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+        th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        th { background: #eef2ff; }
+        code { background: #e5e7eb; padding: 2px 6px; border-radius: 6px; }
+        .muted { color: #6b7280; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Testing as Code & API Monitoring</h1>
+    <p>API surveillée : <strong>Frankfurter</strong> — taux de change publics sans clé API</p>
+</header>
+<main>
+    <p>
+        <a class="btn" href="{{ url_for('run_tests') }}">Lancer un run maintenant</a>
+        <a class="btn" href="{{ url_for('api_runs') }}">Voir JSON</a>
+        <a class="btn" href="{{ url_for('health') }}">Health check</a>
+    </p>
+
+    {% if last_run %}
+        <h2>Dernier run</h2>
+        <p class="muted">{{ last_run.timestamp }}</p>
+        <div class="grid">
+            <div class="card">Statut<div class="metric {{ 'ok' if last_run.status == 'PASS' else 'ko' }}">{{ last_run.status }}</div></div>
+            <div class="card">Tests OK<div class="metric">{{ last_run.summary.passed }}/{{ last_run.summary.total }}</div></div>
+            <div class="card">Taux d'erreur<div class="metric">{{ (last_run.summary.error_rate * 100) | round(1) }}%</div></div>
+            <div class="card">Latence moyenne<div class="metric">{{ last_run.summary.latency_ms_avg }} ms</div></div>
+            <div class="card">P95<div class="metric">{{ last_run.summary.latency_ms_p95 }} ms</div></div>
+            <div class="card">Disponibilité<div class="metric">{{ (last_run.summary.availability * 100) | round(1) }}%</div></div>
+        </div>
+
+        <h2>Détail des tests</h2>
+        <table>
+            <thead><tr><th>Test</th><th>Statut</th><th>HTTP</th><th>Latence</th><th>Détails</th></tr></thead>
+            <tbody>
+            {% for test in last_run.tests %}
+                <tr>
+                    <td>{{ test.name }}</td>
+                    <td class="{{ 'ok' if test.status == 'PASS' else 'ko' }}">{{ test.status }}</td>
+                    <td>{{ test.status_code }}</td>
+                    <td>{{ test.latency_ms }} ms</td>
+                    <td>{{ test.details }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="card">
+            Aucun run enregistré. Clique sur <strong>Lancer un run maintenant</strong> ou configure une tâche planifiée PythonAnywhere.
+        </div>
+    {% endif %}
+
+    <h2>Historique</h2>
+    <table>
+        <thead><tr><th>ID</th><th>Date</th><th>Statut</th><th>OK</th><th>Erreur</th><th>Avg</th><th>P95</th></tr></thead>
+        <tbody>
+        {% for run in runs %}
+            <tr>
+                <td>{{ run.id }}</td>
+                <td><code>{{ run.timestamp }}</code></td>
+                <td class="{{ 'ok' if run.status == 'PASS' else 'ko' }}">{{ run.status }}</td>
+                <td>{{ run.summary.passed }}/{{ run.summary.total }}</td>
+                <td>{{ (run.summary.error_rate * 100) | round(1) }}%</td>
+                <td>{{ run.summary.latency_ms_avg }} ms</td>
+                <td>{{ run.summary.latency_ms_p95 }} ms</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

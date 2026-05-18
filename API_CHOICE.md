@@ -1,0 +1,23 @@
+# API Choice
+
+- Étudiant : Alex Famechon
+- API choisie : Frankfurter — Currency data API
+- URL base : `https://api.frankfurter.dev/v2`
+- Documentation officielle / README : `https://frankfurter.dev/`
+- Auth : None
+- Endpoints testés :
+  - GET `/rate/EUR/USD`
+  - GET `/rates?base=EUR&quotes=USD,GBP`
+  - GET `/rates?date=2024-01-15&base=EUR&quotes=USD`
+  - GET `/currencies`
+  - GET `/providers`
+  - GET `/currency/ZZZ` pour tester une erreur attendue
+  - GET `/rates?date=not-a-date` pour tester une erreur attendue
+- Hypothèses de contrat :
+  - Un objet `Rate` contient `date` string, `base` string, `quote` string, `rate` number positif.
+  - `/rates` renvoie une liste d'objets `Rate`.
+  - `/currencies` renvoie une liste d'objets contenant au minimum `iso_code` et `name`.
+  - `/providers` renvoie une liste d'objets contenant au minimum `key`, `name`, `currencies`.
+  - Les erreurs renvoient un code HTTP 4xx et un corps JSON avec `message` quand applicable.
+- Limites / rate limiting connu : pas de quota mensuel/journalier annoncé, mais l'API peut limiter les requêtes abusives.
+- Risques : indisponibilité temporaire, 429 en cas de trop grand nombre d'appels, évolution de schéma si changement de version, latence variable selon le réseau.
